@@ -14,7 +14,8 @@ namespace Overblog\DataLoaderBundle\DependencyInjection;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
-class Internal
+/** @internal */
+class Support
 {
     private static string $alias = 'overblog_dataloader';
 
@@ -58,5 +59,18 @@ class Internal
         }
 
         return null;
+    }
+
+    public static function buildOptionsParams(array $options): array
+    {
+        $optionsParams = [];
+
+        $optionsParams['batch'] = $options['batch'];
+        $optionsParams['cache'] = $options['cache'];
+        $optionsParams['maxBatchSize'] = $options['max_batch_size'];
+        $optionsParams['cacheMap'] = new Reference($options['cache_map']);
+        $optionsParams['cacheKeyFn'] = self::buildCallableFromScalar($options['cache_key_fn']);
+
+        return $optionsParams;
     }
 }

@@ -39,7 +39,7 @@ final class OverblogDataLoaderExtension extends Extension
         });
 
         foreach ($config['loaders'] as $name => $loaderConfig) {
-            $container->register(Internal::generateDataLoaderServiceIDFromName($name, $container), DataLoader::class)
+            $container->register(Support::generateDataLoaderServiceIDFromName($name, $container), DataLoader::class)
                 ->addTag('overblog.dataloader', array_merge($config['defaults'], [
                     'name' => $name,
                     'alias' => $loaderConfig['alias'] ?? null,
@@ -51,6 +51,6 @@ final class OverblogDataLoaderExtension extends Extension
 
     public function getAlias(): string
     {
-        return Internal::getAlias();
+        return Support::getAlias();
     }
 }

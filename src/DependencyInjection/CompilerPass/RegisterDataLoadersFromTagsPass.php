@@ -13,7 +13,7 @@ namespace Overblog\DataLoaderBundle\DependencyInjection\CompilerPass;
 
 use Overblog\DataLoader\DataLoader;
 use Overblog\DataLoader\Option;
-use Overblog\DataLoaderBundle\DependencyInjection\Internal;
+use Overblog\DataLoaderBundle\DependencyInjection\Support;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
@@ -26,7 +26,7 @@ class RegisterDataLoadersFromTagsPass implements CompilerPassInterface
             foreach ($tags as $attributes) {
                 $batchLoadFn = isset($attributes['method'])
                     ? [new Reference($serviceId), $attributes['method']]
-                    : Internal::buildCallableFromScalar($attributes['batch_load_fn']);
+                    : Support::buildCallableFromScalar($attributes['batch_load_fn']);
 
                 $this->registerDataLoader($container, $attributes, $batchLoadFn);
             }
@@ -35,12 +35,12 @@ class RegisterDataLoadersFromTagsPass implements CompilerPassInterface
 
     private function registerDataLoader(ContainerBuilder $container, array $loaderConfig, mixed $batchLoadFn): void
     {
-        $dataLoaderServiceID = Internal::generateDataLoaderServiceIDFromName($loaderConfig['name'], $container);
-        $optionServiceID = Internal::generateDataLoaderOptionServiceIDFromName($loaderConfig['name'], $container);
+        $dataLoaderServiceID = Support::generateDataLoaderServiceIDFromName($loaderConfig['name'], $container);
+        $optionServiceID = Support::generateDataLoaderOptionServiceIDFromName($loaderConfig['name'], $container);
 
         $container->register($optionServiceID, Option::class)
             ->setPublic(false)
-            ->setArguments([$this->buildOptionsParams($loaderConfig['options'])]);
+            ->setArguments([Support::buildOptionsParams($loaderConfig['options'])]);
 
         $definition = $container->register($dataLoaderServiceID, DataLoader::class)
             ->setPublic(true)
@@ -52,7 +52,7 @@ class RegisterDataLoadersFromTagsPass implements CompilerPassInterface
             ]);
 
         if (isset($loaderConfig['factory'])) {
-            $definition->setFactory(Internal::buildCallableFromScalar($loaderConfig['factory']));
+            $definition->setFactory(Support::buildCallableFromScalar($loaderConfig['factory']));
         }
 
         if (isset($loaderConfig['alias'])) {
@@ -60,18 +60,5 @@ class RegisterDataLoadersFromTagsPass implements CompilerPassInterface
                 ->setAlias($loaderConfig['alias'], $dataLoaderServiceID)
                 ->setPublic(true);
         }
-    }
-
-    private function buildOptionsParams(array $options): array
-    {
-        $optionsParams = [];
-
-        $optionsParams['batch'] = $options['batch'];
-        $optionsParams['cache'] = $options['cache'];
-        $optionsParams['maxBatchSize'] = $options['max_batch_size'];
-        $optionsParams['cacheMap'] = new Reference($options['cache_map']);
-        $optionsParams['cacheKeyFn'] = Internal::buildCallableFromScalar($options['cache_key_fn']);
-
-        return $optionsParams;
     }
 }
