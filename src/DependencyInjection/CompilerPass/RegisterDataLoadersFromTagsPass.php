@@ -40,7 +40,7 @@ class RegisterDataLoadersFromTagsPass implements CompilerPassInterface
 
         $container->register($optionServiceID, Option::class)
             ->setPublic(false)
-            ->setArguments([$this->buildOptionsParams($loaderConfig)]);
+            ->setArguments([$this->buildOptionsParams($loaderConfig['options'])]);
 
         $definition = $container->register($dataLoaderServiceID, DataLoader::class)
             ->setPublic(true)
