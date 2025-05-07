@@ -1,0 +1,7 @@
+services:
+  _defaults:
+    autoconfigure: true
+    public: true
+
+  Overblog\DataLoaderBundle\Tests\Functional\app\UserDataAttributedLoader:
+    class: Overblog\DataLoaderBundle\Tests\Functional\app\UserDataAttributedLoader

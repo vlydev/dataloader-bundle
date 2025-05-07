@@ -11,7 +11,9 @@
 
 namespace Overblog\DataLoaderBundle;
 
+use Overblog\DataLoaderBundle\DependencyInjection\CompilerPass\RegisterDataLoadersFromTagsPass;
 use Overblog\DataLoaderBundle\DependencyInjection\OverblogDataLoaderExtension;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -20,5 +22,12 @@ final class OverblogDataLoaderBundle extends Bundle
     public function getContainerExtension(): ?ExtensionInterface
     {
         return new OverblogDataLoaderExtension();
+    }
+
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new RegisterDataLoadersFromTagsPass());
     }
 }

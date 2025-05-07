@@ -11,10 +11,13 @@
 
 namespace Overblog\DataLoaderBundle\Tests\Functional;
 
+use Overblog\DataLoaderBundle\Tests\Functional\app\AppKernel;
+
 class BootTest extends TestCase
 {
     public function testBootAppKernel(): void
     {
+        /** @var AppKernel */
         $kernel = $this->createKernel();
         $kernel->boot();
 
