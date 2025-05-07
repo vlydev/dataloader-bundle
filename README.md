@@ -85,6 +85,25 @@ Here the list of existing promise adapters:
 * **[GuzzleHttp/Promises](https://github.com/guzzle/promises)**: overblog_dataloader.guzzle_http_promise_adapter
 * **[Webonyx/GraphQL-PHP](https://github.com/webonyx/graphql-php) Sync Promise**: overblog_dataloader.webonyx_graphql_sync_promise_adapter
 
+## Configuration using attributes
+
+This bundle supports autoconfiguration via attributes. Add `Overblog\DataLoaderBundle\Attribute\AsDataLoader` on the service you want to expose as data loader:
+
+````php
+<?php
+
+#[Overblog\DataLoaderBundle\Attribute\AsDataLoader(name: "users", alias: "users_dataloader")]
+class UserLoader {
+    public function __invoke(array $ids): array
+    {
+        return ["John", "Steve", "Nash"];
+    }
+}
+
+?>
+
+````
+
 ## Combine with GraphQLBundle
 
 This bundle can be use with [GraphQLBundle](https://github.com/overblog/GraphQLBundle).
