@@ -25,12 +25,12 @@ class Internal
 
     public static function generateDataLoaderServiceIDFromName(string $name, ContainerBuilder $container): string
     {
-        return \sprintf('%s.%s_loader', static::$alias, $container::underscore($name));
+        return sprintf('%s.%s_loader', static::$alias, $container::underscore($name));
     }
 
     public static function generateDataLoaderOptionServiceIDFromName(string $name, ContainerBuilder $container): string
     {
-        return \sprintf('%s_option', static::generateDataLoaderServiceIDFromName($name, $container));
+        return sprintf('%s_option', static::generateDataLoaderServiceIDFromName($name, $container));
     }
 
     public static function buildCallableFromScalar($scalar): mixed
@@ -58,18 +58,5 @@ class Internal
         }
 
         return null;
-    }
-
-    public static function buildOptionsParams(array $options): array
-    {
-        $optionsParams = [];
-
-        $optionsParams['batch'] = $options['batch'];
-        $optionsParams['cache'] = $options['cache'];
-        $optionsParams['maxBatchSize'] = $options['max_batch_size'];
-        $optionsParams['cacheMap'] = new Reference($options['cache_map']);
-        $optionsParams['cacheKeyFn'] = static::buildCallableFromScalar($options['cache_key_fn']);
-
-        return $optionsParams;
     }
 }

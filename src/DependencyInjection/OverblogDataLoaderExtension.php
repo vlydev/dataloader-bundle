@@ -34,7 +34,7 @@ final class OverblogDataLoaderExtension extends Extension
                 'name' => $attribute->name,
                 'alias' => $attribute->alias,
                 'method' => $reflector instanceof \ReflectionMethod ? $reflector->getName() : ($attribute->method ?? '__invoke'),
-                'options' => array_merge($config['defaults']['options'], $attribute->options ?? []),
+                ...array_merge($config['defaults']['options'], $attribute->options ?? []),
             ]));
         });
 
@@ -44,7 +44,7 @@ final class OverblogDataLoaderExtension extends Extension
                     'name' => $name,
                     'alias' => $loaderConfig['alias'],
                     'batch_load_fn' => $loaderConfig['batch_load_fn'],
-                    'options' => array_merge($config['defaults']['options'], $loaderConfig['options'] ?? []),
+                    ...array_merge($config['defaults']['options'], $loaderConfig['options'] ?? []),
                 ]));
         }
     }

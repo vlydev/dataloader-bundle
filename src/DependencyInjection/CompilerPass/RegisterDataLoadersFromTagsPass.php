@@ -40,7 +40,7 @@ class RegisterDataLoadersFromTagsPass implements CompilerPassInterface
 
         $container->register($optionServiceID, Option::class)
             ->setPublic(false)
-            ->setArguments([Internal::buildOptionsParams($loaderConfig['options'])]);
+            ->setArguments([$this->buildOptionsParams($loaderConfig)]);
 
         $definition = $container->register($dataLoaderServiceID, DataLoader::class)
             ->setPublic(true)
@@ -60,5 +60,18 @@ class RegisterDataLoadersFromTagsPass implements CompilerPassInterface
                 ->setAlias($loaderConfig['alias'], $dataLoaderServiceID)
                 ->setPublic(true);
         }
+    }
+
+    private function buildOptionsParams(array $options): array
+    {
+        $optionsParams = [];
+
+        $optionsParams['batch'] = $options['batch'];
+        $optionsParams['cache'] = $options['cache'];
+        $optionsParams['maxBatchSize'] = $options['max_batch_size'];
+        $optionsParams['cacheMap'] = new Reference($options['cache_map']);
+        $optionsParams['cacheKeyFn'] = Internal::buildCallableFromScalar($options['cache_key_fn']);
+
+        return $optionsParams;
     }
 }
