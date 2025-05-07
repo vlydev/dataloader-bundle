@@ -42,7 +42,7 @@ final class OverblogDataLoaderExtension extends Extension
             $container->register(Internal::generateDataLoaderServiceIDFromName($name, $container), DataLoader::class)
                 ->addTag('overblog.dataloader', array_merge($config['defaults'], [
                     'name' => $name,
-                    'alias' => $loaderConfig['alias'],
+                    'alias' => $loaderConfig['alias'] ?? null,
                     'batch_load_fn' => $loaderConfig['batch_load_fn'],
                     ...array_merge($config['defaults']['options'], $loaderConfig['options'] ?? []),
                 ]));
