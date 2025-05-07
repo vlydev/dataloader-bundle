@@ -78,4 +78,40 @@ class OverblogDataLoaderExtensionTest extends TestCase
             $this->container
         );
     }
+
+    public function testLoadsValidConfiguration()
+    {
+        $this->extension->load(
+            [
+                [
+                    'defaults' => [
+                        'promise_adapter' => 'overblog_dataloader.react_promise_adapter',
+                    ],
+                    'loaders' => [
+                        'users' => [
+                            'alias' => 'users_loader',
+                            'batch_load_fn' => '@app.user:getUsers',
+                        ],
+                        'posts' => [
+                            'batch_load_fn' => 'Post::getPosts',
+                            'options' => [
+                                'max_batch_size' => 15,
+                                'batch' => false,
+                                'cache' => false,
+                                'cache_map' => 'app.cache.map',
+                                'cache_key_fn' => '@app.cache',
+                            ],
+                        ],
+                        'images' => [
+                            'factory' => 'dataloader_factory',
+                            'batch_load_fn' => 'Image\Loader::get',
+                        ],
+                    ],
+                ],
+            ],
+            $this->container
+        );
+
+        $this->assertInstanceOf(ContainerBuilder::class, $this->container);
+    }
 }
