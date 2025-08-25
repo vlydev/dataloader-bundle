@@ -11,11 +11,13 @@
 
 namespace Overblog\DataLoaderBundle\DependencyInjection;
 
+use Overblog\DataLoader\DataLoader;
+use Overblog\DataLoaderBundle\Attribute\AsDataLoader;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
-use Symfony\Component\DependencyInjection\Reference;
 
 final class OverblogDataLoaderExtension extends Extension
 {
@@ -27,89 +29,32 @@ final class OverblogDataLoaderExtension extends Extension
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 
+        $container->registerAttributeForAutoconfiguration(AsDataLoader::class, function (ChildDefinition $definition, AsDataLoader $attribute, \ReflectionClass|\ReflectionMethod $reflector) use ($config) {
+            if ($reflector instanceof \ReflectionMethod && null !== $attribute->method) {
+                throw new \LogicException(sprintf('Parameter "method" for attribute "%s" must be NULL when applied on a method.', AsDataLoader::class));
+            }
+
+            $definition->addTag('overblog.dataloader', array_merge($config['defaults'], [
+                'name' => $attribute->name,
+                'alias' => $attribute->alias,
+                'method' => $reflector instanceof \ReflectionMethod ? $reflector->getName() : ($attribute->method ?? '__invoke'),
+                'options' => array_merge($config['defaults']['options'], $attribute->options ?? []),
+            ]));
+        });
+
         foreach ($config['loaders'] as $name => $loaderConfig) {
-            $loaderConfig = array_replace($config['defaults'], $loaderConfig);
-            $dataLoaderServiceID = $this->generateDataLoaderServiceIDFromName($name, $container);
-            $OptionServiceID = $this->generateDataLoaderOptionServiceIDFromName($name, $container);
-            $batchLoadFn = $this->buildCallableFromScalar($loaderConfig['batch_load_fn']);
-
-            $container->register($OptionServiceID, 'Overblog\\DataLoader\\Option')
-                ->setPublic(false)
-                ->setArguments([$this->buildOptionsParams($loaderConfig['options'])]);
-
-            $definition = $container->register($dataLoaderServiceID, 'Overblog\\DataLoader\\DataLoader')
-                ->setPublic(true)
-                ->addTag('kernel.reset', ['method' => 'clearAll'])
-                ->setArguments([
-                    $batchLoadFn,
-                    new Reference($loaderConfig['promise_adapter']),
-                    new Reference($OptionServiceID),
-                ])
-            ;
-
-            if (isset($loaderConfig['factory'])) {
-                $definition->setFactory($this->buildCallableFromScalar($loaderConfig['factory']));
-            }
-
-            if (isset($loaderConfig['alias'])) {
-                $container->setAlias($loaderConfig['alias'], $dataLoaderServiceID);
-                $container->getAlias($loaderConfig['alias'])->setPublic(true);
-            }
+            $container->register(Support::generateDataLoaderServiceIDFromName($name, $container), DataLoader::class)
+                ->addTag('overblog.dataloader', array_merge($config['defaults'], [
+                    'name' => $name,
+                    'alias' => $loaderConfig['alias'] ?? null,
+                    'batch_load_fn' => $loaderConfig['batch_load_fn'],
+                    'options' => array_merge($config['defaults']['options'], $loaderConfig['options'] ?? []),
+                ]));
         }
     }
 
     public function getAlias(): string
     {
-        return 'overblog_dataloader';
-    }
-
-    private function generateDataLoaderServiceIDFromName($name, ContainerBuilder $container): string
-    {
-        return sprintf('%s.%s_loader', $this->getAlias(), $container->underscore($name));
-    }
-
-    private function generateDataLoaderOptionServiceIDFromName($name, ContainerBuilder $container): string
-    {
-        return sprintf('%s_option', $this->generateDataLoaderServiceIDFromName($name, $container));
-    }
-
-    private function buildOptionsParams(array $options): array
-    {
-        $optionsParams = [];
-
-        $optionsParams['batch'] = $options['batch'];
-        $optionsParams['cache'] = $options['cache'];
-        $optionsParams['maxBatchSize'] = $options['max_batch_size'];
-        $optionsParams['cacheMap'] = new Reference($options['cache_map']);
-        $optionsParams['cacheKeyFn'] = $this->buildCallableFromScalar($options['cache_key_fn']);
-
-        return $optionsParams;
-    }
-
-    private function buildCallableFromScalar($scalar): mixed
-    {
-        $matches = null;
-
-        if (null === $scalar) {
-            return null;
-        }
-
-        if (preg_match(Configuration::SERVICE_CALLABLE_NOTATION_REGEX, $scalar, $matches)) {
-            $function = new Reference($matches['service_id']);
-            if (empty($matches['method'])) {
-                return $function;
-            } else {
-                return [$function, $matches['method']];
-            }
-        } elseif (preg_match(Configuration::PHP_CALLABLE_NOTATION_REGEX, $scalar, $matches)) {
-            $function = $matches['function'];
-            if (empty($matches['method'])) {
-                return $function;
-            } else {
-                return [$function, $matches['method']];
-            }
-        }
-
-        return null;
+        return Support::getAlias();
     }
 }

@@ -11,7 +11,7 @@
 
 namespace Overblog\DataLoaderBundle\Tests\Functional\app;
 
-class UserDataProvider
+class UserDataStaticProvider
 {
     public static $users = [
         1 => [

@@ -1,5 +1,8 @@
+imports:
+    - { resource: "services.yaml" }
+
 framework:
-    test: ~
+    test: true
     secret: test
     router:
         utf8: true
@@ -13,5 +16,5 @@ overblog_dataloader:
         promise_adapter: "overblog_dataloader.react_promise_adapter"
     loaders:
         users:
-            alias: "users_loader"
-            batch_load_fn: "Overblog\\DataLoaderBundle\\Tests\\Functional\\app\\UserDataProvider::getUsersPromise"
+            alias: "yaml_users_loader"
+            batch_load_fn: "Overblog\\DataLoaderBundle\\Tests\\Functional\\app\\UserDataStaticProvider::getUsersPromise"

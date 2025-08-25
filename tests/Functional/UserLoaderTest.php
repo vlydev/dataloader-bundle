@@ -12,24 +12,27 @@
 namespace Overblog\DataLoaderBundle\Tests\Functional;
 
 use Overblog\DataLoader\DataLoader;
-use Overblog\DataLoaderBundle\Tests\Functional\app\UserDataProvider;
+use Overblog\DataLoaderBundle\Tests\Functional\app\UserDataStaticProvider;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 use function React\Promise\all;
 
 class UserLoaderTest extends TestCase
 {
-    protected function setUp(): void
+    public static function dataLoaderAliasesProvider(): array
     {
-        parent::setUp();
-
-        static::bootKernel();
-        static::createKernel();
+        return [
+            ['yaml_users_loader'],
+            ['class_attribute_users_loader'],
+            ['method_attribute_users_loader'],
+        ];
     }
 
-    public function testGetUsers()
+    #[DataProvider('dataLoaderAliasesProvider')]
+    public function testGetUsers(string $aliasName)
     {
         /** @var DataLoader $userLoader */
-        $userLoader = static::$kernel->getContainer()->get('users_loader');
+        $userLoader = static::getContainer()->get($aliasName);
 
         $promise = all([
             $userLoader->load(3),
@@ -40,17 +43,17 @@ class UserLoaderTest extends TestCase
 
         $this->assertEquals(
             [
-                UserDataProvider::$users[3],
-                UserDataProvider::$users[5],
+                UserDataStaticProvider::$users[3],
+                UserDataStaticProvider::$users[5],
                 [
-                    UserDataProvider::$users[5],
-                    UserDataProvider::$users[2],
-                    UserDataProvider::$users[4],
+                    UserDataStaticProvider::$users[5],
+                    UserDataStaticProvider::$users[2],
+                    UserDataStaticProvider::$users[4],
                 ],
                 [
-                    UserDataProvider::$users[1],
-                    UserDataProvider::$users[6],
-                    UserDataProvider::$users[3],
+                    UserDataStaticProvider::$users[1],
+                    UserDataStaticProvider::$users[6],
+                    UserDataStaticProvider::$users[3],
                 ],
             ],
             $userLoader->await($promise)

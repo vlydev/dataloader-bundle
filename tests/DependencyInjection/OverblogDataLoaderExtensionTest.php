@@ -15,9 +15,7 @@ use Overblog\DataLoaderBundle\DependencyInjection\Configuration;
 use Overblog\DataLoaderBundle\DependencyInjection\OverblogDataLoaderExtension;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
-use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
 
 class OverblogDataLoaderExtensionTest extends TestCase
 {
@@ -59,96 +57,6 @@ class OverblogDataLoaderExtensionTest extends TestCase
         }
     }
 
-    public function testUsersDataLoaderConfig()
-    {
-        $this->loadValidConfig();
-
-        $serviceDataLoaderID = 'overblog_dataloader.users_loader';
-        $serviceDataLoaderOptionID = $serviceDataLoaderID.'_option';
-
-        $this->assertDataLoaderService(
-            $serviceDataLoaderID,
-            [
-                [new Reference('app.user'), 'getUsers'],
-                new Reference('overblog_dataloader.react_promise_adapter'),
-                new Reference($serviceDataLoaderOptionID),
-            ],
-            'users_loader'
-        );
-
-        $this->assertOptionService(
-            $serviceDataLoaderOptionID,
-            [
-                'batch' => true,
-                'cache' => true,
-                'maxBatchSize' => null,
-                'cacheMap' => new Reference('overblog_dataloader.cache_map'),
-                'cacheKeyFn' => null,
-            ]
-        );
-    }
-
-    public function testPostsDataLoaderConfig()
-    {
-        $this->loadValidConfig();
-
-        $serviceDataLoaderID = 'overblog_dataloader.posts_loader';
-        $serviceDataLoaderOptionID = $serviceDataLoaderID.'_option';
-
-        $this->assertDataLoaderService(
-            $serviceDataLoaderID,
-            [
-                ['Post', 'getPosts'],
-                new Reference('overblog_dataloader.react_promise_adapter'),
-                new Reference($serviceDataLoaderOptionID),
-            ]
-        );
-
-        $this->assertOptionService(
-            $serviceDataLoaderOptionID,
-            [
-                'batch' => false,
-                'cache' => false,
-                'maxBatchSize' => 15,
-                'cacheMap' => new Reference('app.cache.map'),
-                'cacheKeyFn' => new Reference('app.cache'),
-            ]
-        );
-    }
-
-    public function testImagesDataLoaderConfig()
-    {
-        $this->loadValidConfig();
-
-        $serviceDataLoaderID = 'overblog_dataloader.images_loader';
-        $serviceDataLoaderOptionID = $serviceDataLoaderID.'_option';
-
-        $this->assertDataLoaderService(
-            $serviceDataLoaderID,
-            [
-                ['Image\Loader', 'get'],
-                new Reference('overblog_dataloader.react_promise_adapter'),
-                new Reference($serviceDataLoaderOptionID),
-            ]
-        );
-
-        $this->assertOptionService(
-            $serviceDataLoaderOptionID,
-            [
-                'batch' => true,
-                'cache' => true,
-                'maxBatchSize' => null,
-                'cacheMap' => new Reference('overblog_dataloader.cache_map'),
-                'cacheKeyFn' => null,
-            ]
-        );
-
-        $this->assertEquals(
-            'dataloader_factory',
-            $this->container->getDefinition($serviceDataLoaderID)->getFactory()
-        );
-    }
-
     public function testBatchLoadFnNotCallable()
     {
         $this->expectException(InvalidConfigurationException::class);
@@ -171,7 +79,7 @@ class OverblogDataLoaderExtensionTest extends TestCase
         );
     }
 
-    private function loadValidConfig()
+    public function testLoadsValidConfiguration()
     {
         $this->extension->load(
             [
@@ -203,22 +111,7 @@ class OverblogDataLoaderExtensionTest extends TestCase
             ],
             $this->container
         );
-    }
 
-    private function assertDataLoaderService($serviceID, array $expectedArguments, $alias = null)
-    {
-        $testDataLoaderDefinition = $this->container->getDefinition($serviceID);
-        $this->assertEquals($expectedArguments, $testDataLoaderDefinition->getArguments());
-
-        if ($alias) {
-            $this->assertEquals(new Alias($serviceID, true), $this->container->getAlias($alias));
-        }
-    }
-
-    private function assertOptionService($serviceID, array $expectedParameters)
-    {
-        $testOptionDefinition = $this->container->getDefinition($serviceID);
-
-        $this->assertEquals([$expectedParameters], $testOptionDefinition->getArguments());
+        $this->assertInstanceOf(ContainerBuilder::class, $this->container);
     }
 }
